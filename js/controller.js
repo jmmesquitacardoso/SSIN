@@ -17,6 +17,8 @@ app.controller('fileCtrl', function($scope){
   		context.drawImage(img, 0, 0);
 
   		var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+  		//Data corresponde aos bytes da imagem na ordem R,G,B,Alpha (1 pixel = 4 bytes)
   		var data = imageData.data;
   		var msg = "SEGURANCA E MESMO DO CARALHO, FODA-SE";
   		encodeImage(data, msg);
@@ -29,6 +31,10 @@ app.controller('fileCtrl', function($scope){
 
 	};
 
+	/**
+	*** Distribui cada bit de cada letra pelos LSB dos componentes RGB de bytes alternados
+	*** E.G., SEGURANCA -> bits de S -> {bit 1 -> R do byte 1, bit 2 -> G do byte 2, ...}
+	**/
 	var encodeImage = function(imageData, msg){
   		var letterIndex;
   		var byteIndex = 0;
