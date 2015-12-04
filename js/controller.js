@@ -20,9 +20,10 @@ app.controller('fileCtrl', function($scope){
 
   		//Data corresponde aos bytes da imagem na ordem R,G,B,Alpha (1 pixel = 4 bytes)
   		var data = imageData.data;
-  		var msg = "SEGURANCA E MESMO DO CARALHO, FODA-SE";
-  		encodeImage(data, msg);
-  		var decodedMsg = decodeImage(data);
+  		var msg = "SEGURANCA";
+  		encodeImage(data, msg, 1);
+  		console.log("\n\n\n");
+  		var decodedMsg = decodeImage(data, 1);
   		console.log("DECODED MESSAGE: " + decodedMsg);
 
       	// overwrite original image
@@ -35,54 +36,73 @@ app.controller('fileCtrl', function($scope){
 	*** Distribui cada bit de cada letra pelos LSB dos componentes RGB de bytes alternados
 	*** E.G., SEGURANCA -> bits de S -> {bit 1 -> R do byte 1, bit 2 -> G do byte 2, ...}
 	**/
-	var encodeImage = function(imageData, msg){
-  		var letterIndex;
-  		var byteIndex = 0;
-  		var counter = 0;
+ var encodeImage = function(imageData, msg, nBits){
+      var letterIndex;
+      var byteIndex = 0;
+      var counter = 0;
+      var andValue = 2 * Math.pow(2, nBits - 1) - 1;
 
-  		for(letterIndex = 0; letterIndex < msg.length; letterIndex++){
-  			for(var bitIterator = 0; bitIterator < 8; bitIterator++, counter++){
-  				byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
-  				var bit = ( (msg.charCodeAt(letterIndex) & (1 << bitIterator)) >> bitIterator );
+      for(letterIndex = 0; letterIndex < msg.length; letterIndex++){
+        for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits){
+          console.log("------ BIT " + bitIterator + " -------");
+          console.log("COUntER = " + counter);
+          byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
+          counter++;
+          console.log("imageData = " + imageData[byteIndex]);
+          var byteValue = ( (msg.charCodeAt(letterIndex) & (andValue << bitIterator) )) >> bitIterator;
+          console.log("Byte Value = " + byteValue);
+          if(byteValue != 0){
+            imageData[byteIndex] = (imageData[byteIndex]) ^ byteValue;
+            for(var i = 0; i < nBits; i++){
+            	console.log("CHANGING BIT " + i);
+            	imageData[byteIndex] ^= 1 << (i);
+            }
+          }else{
+            imageData[byteIndex] &= ~andValue;
+          }
+          console.log("ENCODED VALUE = " + imageData[byteIndex]);
+        }
+      }
 
-  				if(bit == 1){
-  					imageData[byteIndex] |= 1;
-  				}else{
-  					imageData[byteIndex] &= ~1;
-  				}
-  			}
-  		}
+      console.log("COUntER = " + counter);
+      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 3; //end of text character
+      counter++;
+      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 3; //end of text character
+  };
 
-  		counter++;
-  		imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 3; //end of text character
-  		counter++;
-  		imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 3; //end of text character
-	};
-
-	var decodeImage = function(imageData){
+	var decodeImage = function(imageData, nBits){
 		var counter = 0;
 		var byteIndex = 0;
 		var msg = "";
 		var foundFirstStop = false;
+		var andValue = 2 * Math.pow(2, nBits - 1) - 1;
 
 		while(1){
 			var letterASCII = 0;
-			for(var bitIterator = 0; bitIterator < 8; bitIterator++, counter++){
+			for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits, counter++){
+				console.log("--- bitIterator = " + bitIterator + " ---");
   				byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
   				if(imageData[byteIndex] === 3){
   					if(foundFirstStop === true){
+  						console.log("ENDING");
   						return msg;
   					}
   					else{
   						foundFirstStop = true;
+  						console.log("FOUND ONE");
   						continue;
   					}
   				}
-
-  				var bit = imageData[byteIndex] & 1; //LSB
-  				bit = bit << bitIterator;
-  				letterASCII |= bit;
+  				else{
+  					var byteValue = imageData[byteIndex] & andValue; //LSB
+  					console.log("i = " + bitIterator + " imageData = " + imageData[byteIndex]);
+  					console.log("byteValue = " + byteValue);
+  					byteValue = byteValue << bitIterator;
+  					console.log("AFTER SHIFT " + byteValue);
+  					letterASCII |= byteValue;
+  				}	
   			}
+  			console.log("FINAL ASCII NUMBER " + letterASCII);
   			msg += String.fromCharCode(letterASCII);
 		}
 	};
