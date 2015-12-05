@@ -6,6 +6,9 @@
 		<script type="text/javascript" src="./js/controller.js"></script>
 	</head>
 	<body ng-app="FileApp" ng-controller="fileCtrl">
+		<form>
+			Mensagem <input type="text" ng-model="msg">
+		</form>
 		<div ng-file-reader accept="image/gif, image/jpeg, image/png" on-selected="onSelected(files)" on-readed="onReaded(event,file)" 	read-method="readMethod">
 		</div>
 
