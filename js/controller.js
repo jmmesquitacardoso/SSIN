@@ -1,6 +1,11 @@
 var app = angular.module('FileApp', ['ngFileReader']);
+app.config(["$compileProvider", function($compileProvider) {
 
-app.controller('fileCtrl', function($scope){
+    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(blob:|data:audio)/);
+
+}]);
+
+app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
 	$scope.readMethod = "readAsDataURL";
 	$scope.onSelected = function(files){
@@ -30,7 +35,8 @@ app.controller('fileCtrl', function($scope){
       		};
 		}
 		else if(file.type.indexOf("audio") != -1){ //Audio file
-			
+			$scope.sound = $sce.trustAsResourceUrl(e.target.result);
+			encodeSound(e.target.result);
 		}
       };
 
@@ -112,4 +118,17 @@ app.controller('fileCtrl', function($scope){
   			msg += String.fromCharCode(letterASCII);
   		}
   	};
-  });
+
+  	var encodeSound = function(soundData){
+  		console.log(soundData);
+  		var binaryIndex = soundData.indexOf("base64,");
+  		var binarySound = soundData.substring(binaryIndex + 7);
+  		var decoded = decode64(binarySound);
+  		var decimalArray = [];
+
+  		for(var i = 0; i < decoded.length; i++){
+  			decimalArray[i] = decoded[i].charCodeAt(0);
+  		}
+  		console.log(decimalArray.length);
+  	}
+  }]);
