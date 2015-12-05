@@ -1,3 +1,7 @@
+var replaceAt = function(str, index, character){
+	return str.substr(0, index) + character + str.substr(index+1);
+};
+
 var app = angular.module('FileApp', ['ngFileReader']);
 app.config(["$compileProvider", function($compileProvider) {
 
@@ -36,7 +40,10 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 		}
 		else if(file.type.indexOf("audio") != -1){ //Audio file
 			$scope.sound = $sce.trustAsResourceUrl(e.target.result);
-			encodeSound(e.target.result);
+			var newSound = encodeSound(e.target.result, $scope.msg, 1);
+			var msg = decodeSound(newSound, 1);
+			/*$scope.modifiedSound = $sce.trustAsResourceUrl(newSound);
+			console.log("MSG = " + msg);*/
 		}
       };
 
@@ -119,16 +126,98 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   		}
   	};
 
-  	var encodeSound = function(soundData){
-  		console.log(soundData);
+  	var encodeSound = function(soundData, msg, nBits){
+  		var soundCopy = angular.copy(soundData);
   		var binaryIndex = soundData.indexOf("base64,");
   		var binarySound = soundData.substring(binaryIndex + 7);
   		var decoded = decode64(binarySound);
   		var decimalArray = [];
+  		var andValue = 2 * Math.pow(2, nBits - 1) - 1;
+  		console.log("andValue= " + andValue);
 
   		for(var i = 0; i < decoded.length; i++){
   			decimalArray[i] = decoded[i].charCodeAt(0);
   		}
-  		console.log(decimalArray.length);
-  	}
+  		
+  		var sampleBits = (decimalArray[35] << 8) | decimalArray[34];
+  		var dataBlockSize = (((((decimalArray[43] << 8) | decimalArray[42]) << 8) | decimalArray[41]) << 8) | decimalArray[40];
+  		var nSamples = dataBlockSize / sampleBits;
+  		var sampleIterator = 45;
+
+  		for(letterIndex = 0; letterIndex < msg.length; letterIndex++){
+			for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits){
+				console.log("--- BIT " + bitIterator + " ----");
+				var byteValue = ( (msg.charCodeAt(letterIndex) & (andValue << bitIterator) )) >> bitIterator;
+				console.log("BYTE = " + byteValue);
+				if(byteValue != 0){
+					soundCopy = replaceAt(soundCopy, sampleIterator, soundCopy[sampleIterator].charCodeAt(0) ^ byteValue);
+					for(var i = 0; i < nBits; i++){
+						var bitValue = (byteValue >> i) & 1;
+						if(bitValue == 1){
+							soundCopy =  replaceAt(soundCopy, sampleIterator, String.fromCharCode(soundCopy[sampleIterator].charCodeAt(0) | (1 << i))); //Set bit i
+						}
+						else{
+							soundCopy= replaceAt(soundCopy, sampleIterator, String.fromCharCode( soundCopy[sampleIterator].charCodeAt(0) & ~(1 << i)) ); //Clear bit i
+						}
+					}
+				}else{
+					console.log("BEFORE: " + soundCopy[sampleIterator].charCodeAt(0));
+					console.log(soundCopy[sampleIterator].charCodeAt(0) & (~andValue));
+					soundCopy = replaceAt(soundCopy, sampleIterator, String.fromCharCode(soundCopy[sampleIterator].charCodeAt(0) & (~andValue)));
+					console.log("AFTER: " + soundCopy[sampleIterator].charCodeAt(0));
+				}
+			sampleIterator += sampleBits;
+			}
+		}
+
+		soundCopy = replaceAt(soundCopy, sampleIterator, String.fromCharCode(3));
+		sampleIterator += sampleBits; //End of text
+		soundCopy = replaceAt(soundCopy, sampleIterator, String.fromCharCode(3));
+
+		return soundCopy;
+  	};
+
+  	var decodeSound = function(soundData, nBits){
+  		var binaryIndex = soundData.indexOf("base64,");
+  		var binarySound = soundData.substring(binaryIndex + 7);
+  		var decoded = decode64(binarySound);
+  		var decimalArray = [];
+  		var andValue = 2 * Math.pow(2, nBits - 1) - 1;
+  		var sampleIterator = 45;
+  		var msg = "";
+
+  		for(var i = 0; i < decoded.length; i++){
+  			decimalArray[i] = decoded[i].charCodeAt(0);
+  		}
+
+  		var sampleBits = (decimalArray[35] << 8) | decimalArray[34];
+
+  		while(1){
+  		var letterASCII = 0;
+  		for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits){
+  			if(soundData[sampleIterator] === 3){
+  				if(foundFirstStop === true){
+  					return msg;
+  				}
+  				else{
+  					foundFirstStop = true;
+  					console.log("FOUND ONE STOP");
+  					continue;
+  				}
+  			}
+  			else{
+  					console.log("SOUND DATA = " + soundData[sampleIterator].charCodeAt(0) + " ,andValue= " + andValue);
+  					var byteValue = soundData[sampleIterator].charCodeAt(0) & andValue; //LSB
+  					console.log("byteValue = " + byteValue);
+  					byteValue = byteValue << bitIterator;
+  					letterASCII |= byteValue;
+  				}
+  			}
+  			console.log("sampleIterator = " + sampleIterator);
+  			sampleIterator += sampleBits;
+  			console.log(letterASCII);
+  			return;
+  			msg += String.fromCharCode(letterASCII);
+  		}
+  	};
   }]);

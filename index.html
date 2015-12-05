@@ -16,13 +16,17 @@
 		<div ng-show="img">
 			<h1>Original Image</h1>
 			<img ng-src="{{img}}">
-			<h1 ng-show="img">Modified Image</h1>
+			<h1>Modified Image</h1>
 			<canvas id="myCanvas" width="5000" height="5000"></canvas>
 		</div>
 
 		<div ng-show="sound">
 			<h1>Original Sound</h1>
 			<audio controls src="{{sound}}">
+				Your browser does not support audio tag
+			</audio>
+			<h1>Modified Sound</h1>
+			<audio controls src="{{modifiedSound}}">
 				Your browser does not support audio tag
 			</audio>
 		</div>
