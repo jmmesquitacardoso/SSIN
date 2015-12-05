@@ -9,27 +9,25 @@ app.controller('fileCtrl', function($scope){
 	$scope.onReaded = function( e, file ){
   		$scope.img = e.target.result;
 
+  		var msg = "SEGURANCA";
+  		var data;
   		var canvas = document.getElementById('myCanvas');
   		var context = canvas.getContext('2d');
   		var img = new Image();
   		context.clearRect(0, 0, canvas.width, canvas.height);
   		img.src = e.target.result;
-  		context.drawImage(img, 0, 0);
-
-  		var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
-  		//Data corresponde aos bytes da imagem na ordem R,G,B,Alpha (1 pixel = 4 bytes)
-  		var data = imageData.data;
-  		var msg = "SEGURANCA";
-  		encodeImage(data, msg, 1);
-  		console.log("\n\n\n");
-  		var decodedMsg = decodeImage(data, 1);
-  		console.log("DECODED MESSAGE: " + decodedMsg);
-
-      	// overwrite original image
-      	context.putImageData(imageData, 0, 0);
-
-
+  		img.onload = function(){
+  			context.drawImage(img, 0, 0);
+  			var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  			var data = imageData.data;
+  			encodeImage(data, msg, 1);
+  			console.log("\n\n\n");
+  			var decodedMsg = decodeImage(data, 1);
+  			console.log("DECODED MESSAGE: " + decodedMsg);
+      			
+      		// overwrite original image
+      		context.putImageData(imageData, 0, 0);
+  		};
 	};
 
 	/**
@@ -45,7 +43,6 @@ app.controller('fileCtrl', function($scope){
       for(letterIndex = 0; letterIndex < msg.length; letterIndex++){
         for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits){
           console.log("------ BIT " + bitIterator + " -------");
-          console.log("COUntER = " + counter);
           byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
           counter++;
           console.log("imageData = " + imageData[byteIndex]);
@@ -55,7 +52,13 @@ app.controller('fileCtrl', function($scope){
             imageData[byteIndex] = (imageData[byteIndex]) ^ byteValue;
             for(var i = 0; i < nBits; i++){
             	console.log("CHANGING BIT " + i);
-            	imageData[byteIndex] ^= 1 << (i);
+            	var bitValue = (byteValue >> i) & 1;
+            	if(bitValue == 1){
+            		imageData[byteIndex] |= 1 << i;
+            	}
+            	else{
+            		imageData[byteIndex] &= ~(1 << i);
+            	}
             }
           }else{
             imageData[byteIndex] &= ~andValue;
@@ -64,7 +67,6 @@ app.controller('fileCtrl', function($scope){
         }
       }
 
-      console.log("COUntER = " + counter);
       imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 3; //end of text character
       counter++;
       imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 3; //end of text character
