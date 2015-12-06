@@ -10,6 +10,13 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 	$scope.onSelected = function(files){
 	};
 
+  $scope.downloadCanvas = function () {
+    var canvas = document.getElementById("myCanvas");
+    var dataURL = canvas.toDataURL('image/png');
+    var button = document.getElementById('download');
+    button.href = dataURL;
+  };
+
 	$scope.onReaded = function( e, file ){
 
 		if(file.type.indexOf("image") != -1){ //Image file
@@ -18,8 +25,11 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 			var canvas = document.getElementById('myCanvas');
 			var context = canvas.getContext('2d');
 			var img = new Image();
-			context.clearRect(0, 0, canvas.width, canvas.height);
 			img.src = e.target.result;
+      console.log("Unchanged image width = " + img.width);
+      document.getElementById("myCanvas").width = img.width;
+      document.getElementById("myCanvas").height = img.height;
+			context.clearRect(0, 0, canvas.width, canvas.height);
 			img.onload = function(){
 				context.drawImage(img, 0, 0);
 				var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
