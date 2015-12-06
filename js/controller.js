@@ -1,11 +1,7 @@
-var replaceAt = function(str, index, character){
-	return str.substring(0, index) + character + str.substring(index+1);
-};
-
 var app = angular.module('FileApp', ['ngFileReader']);
 app.config(["$compileProvider", function($compileProvider) {
 
-    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(blob:|data:audio)/);
+    $compileProvider.imgSrcSanitizationWhitelist(/^\s*(blob:|data:audio|data:image)/);
 
 }]);
 
@@ -219,18 +215,13 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				if(byteValue != 0){
 					console.log("BEFORE: " + decimalArray[sampleIterator]);
 					decimalArray[sampleIterator] ^= byteValue; 
-					//soundCopy = replaceAt(soundCopy, sampleIterator, String.fromCharCode(soundCopy[sampleIterator].charCodeAt(0) ^ byteValue));
 					for(var i = 0; i < nBits; i++){
 						var bitValue = (byteValue >> i) & 1;
 						var newData;
 						if(bitValue == 1){
-							/*newData = soundCopy[sampleIterator].charCodeAt(0) | (1 << i);
-							soundCopy =  replaceAt(soundCopy, sampleIterator, String.fromCharCode(newData));*/ //Set bit i
 							decimalArray[sampleIterator] |= (1 << i); 
 						}
 						else{
-							/*newData = soundCopy[sampleIterator].charCodeAt(0) & ~(1 << i);
-							soundCopy= replaceAt(soundCopy, sampleIterator, String.fromCharCode(newData) );*/ //Clear bit i
 							decimalArray[sampleIterator] &= ~(1 << i);
 						}
 					}
@@ -238,7 +229,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				}else{
 					console.log("BEFORE: " + decimalArray[sampleIterator]);
 					decimalArray[sampleIterator] &= (~andValue);
-					//soundCopy = replaceAt(soundCopy, sampleIterator, String.fromCharCode(soundCopy[sampleIterator].charCodeAt(0) & (~andValue)));
+
 					console.log("AFTER: " + decimalArray[sampleIterator]);
 				}
 			sampleIterator++;
