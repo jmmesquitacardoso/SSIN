@@ -6,6 +6,9 @@ app.config(["$compileProvider", function($compileProvider) {
 }]);
 
 app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
+
+  $scope.selectedMode = 'image';
+
 	$scope.readMethod = "readAsDataURL";
 	$scope.onSelected = function(files){
 	};

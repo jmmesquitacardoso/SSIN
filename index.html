@@ -2,36 +2,121 @@
 <html>
 	<head>
 		<link rel="stylesheet" type="text/css" href="./css/main.css">
+
+		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
 		<script type="text/javascript" src="./js/angular.js"></script>
   		<script type="text/javascript" src="./js/bower_components/ngFileReader/src/ngFileReader.js"></script>
   		<script type="text/javascript" src="./js/base64.js"></script>
 		<script type="text/javascript" src="./js/controller.js"></script>
 	</head>
 	<body ng-app="FileApp" ng-controller="fileCtrl">
-		<form>
-			Mensagem <input type="text" ng-model="msg">
-		</form>
-		<div ng-file-reader accept="image/gif, image/jpeg, image/png, audio/wav, video/mp4" on-selected="onSelected(files)" on-readed="onReaded(event,file)" 	read-method="readMethod">
+
+
+
+
+
+
+
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-md-12">
+					<nav class="navbar navbar-default" role="navigation">
+						<div class="navbar-header">
+
+							<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+								 <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+							</button> <a class="navbar-brand" href="#">Steganography</a>
+						</div>
+
+						<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+							<ul class="nav navbar-nav">
+								<li ng-class="{ active: selectedMode === 'image' }" ng-click="selectedMode = 'image'">
+									<a href="#">Image</a>
+								</li>
+								<li ng-class="{ active: selectedMode === 'audio' }" ng-click="selectedMode = 'audio'">
+									<a href="#">Audio</a>
+								</li>
+							</ul>
+
+						</div>
+					</nav>
+
+					<!-- IMAGE STEGANOGRAPHY -->
+					<form role="form" ng-show="selectedMode === 'image'">
+						<div class="form-group">
+
+							<label for="imageMessage">
+								Message
+							</label>
+							<input type="text" ng-model="msg" class="form-control" id="imageMessage" />
+						</div>
+
+						<div class="form-group">
+
+							<label for="imageInput">
+								Image file
+							</label>
+							<div ng-file-reader id="imageInput" accept="image/gif, image/jpeg, image/png" on-selected="onSelected(files)" on-readed="onReaded(event,file)" 	read-method="readMethod"></div>
+						</div>
+
+						<div ng-show="img">
+							<h1>Original Image</h1>
+							<img ng-src="{{img}}">
+							<h1>Modified Image</h1>
+							<canvas id="myCanvas" width="5000" height="5000"></canvas>
+						</div>
+					</form>
+					<!-- END IMAGE STEGANOGRAPHY -->
+
+
+					<!-- AUDIO STEGANOGRAPHY -->
+					<form role="form" ng-show="selectedMode === 'audio'">
+						<div class="form-group">
+
+							<label for="imageMessage">
+								Message
+							</label>
+							<input type="text" ng-model="msg" class="form-control" id="imageMessage" />
+						</div>
+
+						<div class="form-group">
+
+							<label for="imageInput">
+								Audio file
+							</label>
+							<div ng-file-reader id="imageInput" accept="audio/wav, video/mp4" on-selected="onSelected(files)" on-readed="onReaded(event,file)" 	read-method="readMethod"></div>
+						</div>
+
+						<div ng-show="sound">
+							<h1>Original Sound</h1>
+							<audio controls src="{{sound}}">
+								Your browser does not support audio tag
+							</audio>
+							<h1>Modified Sound</h1>
+							<audio controls src="{{modifiedSound}}">
+								Your browser does not support audio tag
+							</audio>
+						</div>
+					</form>
+					<!-- END AUDIO STEGANOGRAPHY -->
+				</div>
+			</div>
 		</div>
 
-		<div ng-show="img">
-			<h1>Original Image</h1>
-			<img ng-src="{{img}}">
-			<h1>Modified Image</h1>
-			<canvas id="myCanvas" width="5000" height="5000"></canvas>
-		</div>
 
-		<div ng-show="sound">
-			<h1>Original Sound</h1>
-			<audio controls src="{{sound}}">
-				Your browser does not support audio tag
-			</audio>
-			<h1>Modified Sound</h1>
-			<audio controls src="{{modifiedSound}}">
-				Your browser does not support audio tag
-			</audio>
-		</div>
 
+
+
+
+
+
+
+
+		<!--
 		<div ng-show="video">
 			<h1>Original Video</h1>
 			<video id="v" controls loop>
@@ -42,7 +127,7 @@
 				Your browser does not support HTML5 video.
 			</video>
 			<canvas id="c"></canvas>
-		</div>
+		</div> -->
 
 	</body>
 </html>
