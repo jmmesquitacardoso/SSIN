@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<link rel="stylesheet" type="text/css" href="./css/main.css">
 		<script type="text/javascript" src="./js/angular.js"></script>
   		<script type="text/javascript" src="./js/bower_components/ngFileReader/src/ngFileReader.js"></script>
   		<script type="text/javascript" src="./js/base64.js"></script>
@@ -33,15 +32,15 @@
 		</div>
 
 		<div ng-show="video">
-			<h1>Original Video</h1>
-			<video id="v" controls loop>
-				<source src=http://techslides.com/demos/sample-videos/small.webm type=video/webm>
-			    <source src=http://techslides.com/demos/sample-videos/small.ogv type=video/ogg>
-			    <source src=http://techslides.com/demos/sample-videos/small.mp4 type=video/mp4>
-			    <source src=http://techslides.com/demos/sample-videos/small.3gp type=video/3gp>
-				Your browser does not support HTML5 video.
+			<h1>Base64 encoded version</h1>
+
+			<video controls src="{{video}}">
+				Your browser does not support audio tag
 			</video>
-			<canvas id="c"></canvas>
+
+			{{message}}
+
+        <textarea id="base64textarea" placeholder="Base64 will appear here" cols="50" rows="15"></textarea>
 		</div>
 
 	</body>
