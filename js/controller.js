@@ -29,9 +29,9 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				context.drawImage(img, 0, 0);
 				var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 				var data = imageData.data;
-				encodeImage(data, $scope.msg, 1);
+				encodeImage(data, $scope.msg, 8);
 				console.log("\n\n\n");
-				var decodedMsg = decodeImage(data, 1);
+				var decodedMsg = decodeImage(data);
 				console.log("DECODED MESSAGE: " + decodedMsg);
 
       			// overwrite original image
@@ -47,7 +47,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 		}
         else if (file.type.indexOf("video") !== -1){
             //$scope.video = $sce.trustAsResourceUrl(e.target.result);
-            $scope.video = true; 
+            $scope.video = true;
 
             function draw(v,c,bc,w,h) {
                 if(v.paused || v.ended) return false;
@@ -107,6 +107,12 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 		var counter = 0;
 		var andValue = 2 * Math.pow(2, nBits - 1) - 1;
 
+		// Se o tamanho da mensagem for maior que o número de bits da imagem retorna
+		if (imageData.length/4 < msg.length*8/nBits) {
+			alert("Mensagem demasiado grande");
+			return;
+		}
+
 		for(letterIndex = 0; letterIndex < msg.length; letterIndex++){
 			for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits){
 				console.log("------ BIT " + bitIterator + " -------");
@@ -134,35 +140,38 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 			}
 		}
 
-      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 3; //end of text character
+			imageData[3] = nBits;
+      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 13; //end of text character
       counter++;
-      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 3; //end of text character
+      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 27; //end of text character
   };
 
-  var decodeImage = function(imageData, nBits){
+  var decodeImage = function(imageData){
   	var counter = 0;
   	var byteIndex = 0;
   	var msg = "";
   	var foundFirstStop = false;
+		var nBits = imageData[3];
+		console.log("nBits = " + nBits);
   	var andValue = 2 * Math.pow(2, nBits - 1) - 1;
+
 
   	while(1){
   		var letterASCII = 0;
   		for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits, counter++){
   			console.log("--- bitIterator = " + bitIterator + " ---");
   			byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
-  			if(imageData[byteIndex] === 3){
-  				if(foundFirstStop === true){
+  			if(foundFirstStop === true) {
+  				if(imageData[byteIndex] === 27) {
   					console.log("ENDING");
   					return msg;
   				}
-  				else{
-  					foundFirstStop = true;
-  					console.log("FOUND ONE");
-  					continue;
-  				}
-  			}
-  			else{
+  			} else{
+						if (imageData[byteIndex] === 13) {
+							foundFirstStop = true;
+							console.log("FOUND ONE");
+							continue;
+						}
   					var byteValue = imageData[byteIndex] & andValue; //LSB
   					console.log("i = " + bitIterator + " imageData = " + imageData[byteIndex]);
   					console.log("byteValue = " + byteValue);
@@ -191,6 +200,13 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
   		var sampleBits = (decimalArray[35] << 8) | decimalArray[34];
   		var dataBlockSize = (((((decimalArray[43] << 8) | decimalArray[42]) << 8) | decimalArray[41]) << 8) | decimalArray[40];
+
+			// Se a mensagem for maior que o numero de bits do som
+			if (dataBlockSize < (msg.length*8/nBits)) {
+				alert("Mensagem demasiado grande");
+				return;
+			}
+
   		var nSamples = dataBlockSize / sampleBits;
   		var sampleIterator = 45;
 
