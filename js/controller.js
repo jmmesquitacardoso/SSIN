@@ -206,8 +206,8 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   			decimalArray[i] = decoded[i].charCodeAt(0);
   		}
 
-  		var sampleBits = (decimalArray[35] << 8) | decimalArray[34];
-  		var dataBlockSize = (((((decimalArray[43] << 8) | decimalArray[42]) << 8) | decimalArray[41]) << 8) | decimalArray[40];
+  		var sampleBits = (decimalArray[35] << 4) | decimalArray[34];
+  		var dataBlockSize = (((((decimalArray[43] << 4) | decimalArray[42]) << 4) | decimalArray[41]) << 4) | decimalArray[40];
 
 			// Se a mensagem for maior que o numero de bits do som
 			if (dataBlockSize < (msg.length*8/nBits)) {
