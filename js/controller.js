@@ -62,7 +62,8 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				var binaryIndex = videoData.indexOf("base64,"),
 					binaryVideo = videoData.substring(binaryIndex + 7),
 					decoded = decode64(binaryVideo),
-					decimalArray = [];
+					decimalArray = [],
+					first = true;
 
 				for(var i = 0; i < decoded.length; i++){
 		  			decimalArray[i] = decoded[i].charCodeAt(0);
@@ -81,7 +82,13 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				textToIncode = textToIncode.split("");
 
 				var encodeVideoFrame = function(firstByte, lastByte){
-					for(var i = firstByte; i < lastByte; i++){
+					var i = firstByte;
+					if(first){
+						decimalArray[i] = nBits;
+						i++;
+						first = false;
+					}
+					for(i; i < lastByte; i++){
 						if(textToIncode.length <= 0){
 							return;
 						}
@@ -138,12 +145,14 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 			var newVideo = encodeVideo(angular.copy(videoData),$scope.msg, $scope.videoNBit);
 			$scope.modifiedVideo = $sce.trustAsResourceUrl(newVideo);
 
-			var decodedVideo = function(newVideo,nBits){
+			var decodedVideo = function(newVideo){
 
 				var binaryIndex = newVideo.indexOf("base64,"),
 					binaryVideo = newVideo.substring(binaryIndex + 7),
 					decoded = decode64(binaryVideo),
-					decimalArray = [];
+					decimalArray = [],
+					first = true,
+					nBits;
 
 				for(var i = 0; i < decoded.length; i++){
 					decimalArray[i] = decoded[i].charCodeAt(0);
@@ -153,7 +162,14 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 					done = false;
 
 				var decodeVideoFrame = function(firstByte, lastByte){
-					for(var i = firstByte; i < lastByte; i++){
+					var i = firstByte;
+					if(first){
+						nBits = decimalArray[i];
+						i++;
+						first = false;
+					}
+
+					for(i; i < lastByte; i++){
 
 						var byteValueArray = (decimalArray[i] >>> 0).toString(2);
 						while(byteValueArray.length < 8){
@@ -201,7 +217,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				return msg;
 			}
 
-			var decodedMessage = decodedVideo(newVideo, $scope.videoNBit).split(""),
+			var decodedMessage = decodedVideo(newVideo).split(""),
 				decodedMessageFinal = decodedMessage.slice(0, decodedMessage.length - 32).join("");
 
 
