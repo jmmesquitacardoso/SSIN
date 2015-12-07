@@ -51,6 +51,14 @@
 
 						<div class="form-group">
 
+							<label for="imageNBit">
+								Bit
+							</label>
+							<input type="number" ng-model="imageBit" min="1" max="8" class="form-control" id="imageNBit" />
+						</div>
+
+						<div class="form-group">
+
 							<label for="imageInput">
 								Image file
 							</label>
@@ -78,6 +86,14 @@
 								Message
 							</label>
 							<input type="text" ng-model="msg" class="form-control" id="imageMessage" />
+						</div>
+
+						<div class="form-group">
+
+							<label for="soundNBit">
+								Bit
+							</label>
+							<input type="number" ng-model="soundNBit" min="1" max="8" class="form-control" id="soundNBit" />
 						</div>
 
 						<div class="form-group">
@@ -114,6 +130,14 @@
 
 						<div class="form-group">
 
+							<label for="videoNBit">
+								Bit
+							</label>
+							<input type="number" ng-model="videoNBit" min="1" max="8" class="form-control" id="videoNBit" />
+						</div>
+
+						<div class="form-group">
+
 							<label for="imageInput">
 								Video file
 							</label>
@@ -135,27 +159,5 @@
 				</div>
 			</div>
 		</div>
-
-
-
-
-
-
-
-
-
-
-		<!--
-		<div ng-show="video">
-			<h1>Base64 encoded version</h1>
-
-			<video controls src="{{video}}">
-				Your browser does not support audio tag
-			</video>
-
-			{{message}}
-
-        <textarea id="base64textarea" placeholder="Base64 will appear here" cols="50" rows="15"></textarea>
-
 	</body>
 </html>
