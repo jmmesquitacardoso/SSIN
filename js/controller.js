@@ -277,7 +277,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   			decimalArray[i] = decoded[i].charCodeAt(0);
   		}
 
-  		var sampleBits = (decimalArray[35] << 8) | decimalArray[34];
+  		var sampleBits = (decimalArray[35] << 4) | decimalArray[34];
 
   		console.log("-----DECODE, " + sampleBits + " bits/sample");
   		console.log(decimalArray[34]);
