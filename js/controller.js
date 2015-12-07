@@ -55,10 +55,160 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 		}
         else if (file.type.indexOf("video") !== -1){
             $scope.video = $sce.trustAsResourceUrl(e.target.result);
-            //$scope.video = $sce.trustAsResourceUrl(e.target.result);
+			var videoData = e.target.result;
 
-			//$scope.video = newSound = encodeSound(e.target.result, $scope.msg, 1);
-			//$scope.message = decodeSound(newSound, 1);
+			var encodeVideo = function(videoData, msg, nBits){
+				var binaryIndex = videoData.indexOf("base64,"),
+					binaryVideo = videoData.substring(binaryIndex + 7),
+					decoded = decode64(binaryVideo),
+					decimalArray = [];
+
+				for(var i = 0; i < decoded.length; i++){
+		  			decimalArray[i] = decoded[i].charCodeAt(0);
+		  		}
+
+				var textToIncode = "";
+				for(var letterIndex = 0; letterIndex < msg.length; letterIndex++){
+					var binString = msg[letterIndex].charCodeAt(0).toString(2);
+					while(binString.length < 8){
+						binString = "0" + binString;
+					}
+					textToIncode += binString;
+				}
+
+				textToIncode += "01011100011100100101110001101110";
+				textToIncode = textToIncode.split("");
+
+				var encodeVideoFrame = function(firstByte, lastByte){
+					for(var i = firstByte; i < lastByte; i++){
+						if(textToIncode.length <= 0){
+							return;
+						}
+
+						var bit = textToIncode.slice(0,nBits);
+						for(var k = 0; k < nBits; k++){
+							var bitValue = bit[bit.length - 1 - k];
+							if(bitValue == 1){
+								decimalArray[i] |= (1 << k);
+							}
+							else{
+								decimalArray[i] &= ~(1 << k);
+							}
+						}
+						textToIncode.splice(0,nBits);
+					}
+				}
+
+				var arrayIndex = 0,
+					done = false;
+
+				while(arrayIndex < decimalArray.length && !done) {
+					if(decimalArray[arrayIndex] == 109 &&
+						decimalArray[arrayIndex + 1] == 100 &&
+						decimalArray[arrayIndex + 2] == 97 &&
+						decimalArray[arrayIndex + 3] == 116){
+
+						var packetSize = decimalArray[arrayIndex - 1] +
+									decimalArray[arrayIndex - 2] +
+									decimalArray[arrayIndex - 3] +
+									decimalArray[arrayIndex - 4];
+							encodeVideoFrame(arrayIndex + 4, arrayIndex + packetSize - 4);
+
+							if(textToIncode.length <= 0){
+								done = true;
+							}
+							else{
+								arrayIndex += packetSize;
+							}
+					}
+					else{
+						arrayIndex++;
+					}
+				}
+				var encoded = "";
+				for(var i = 0; i < decimalArray.length; i++){
+					encoded += String.fromCharCode(decimalArray[i]);
+				}
+
+				encoded = encode64(encoded);
+				return videoData.substring(0, binaryIndex + 7) + encoded;
+			}
+
+			var newVideo = encodeVideo(angular.copy(videoData),$scope.msg, 8);
+			$scope.modifiedVideo = $sce.trustAsResourceUrl(newVideo);
+
+			var decodedVideo = function(newVideo,nBits){
+
+				var binaryIndex = newVideo.indexOf("base64,"),
+					binaryVideo = newVideo.substring(binaryIndex + 7),
+					decoded = decode64(binaryVideo),
+					decimalArray = [];
+
+				for(var i = 0; i < decoded.length; i++){
+					decimalArray[i] = decoded[i].charCodeAt(0);
+				}
+
+				var msg = "",
+					done = false;
+
+				var decodeVideoFrame = function(firstByte, lastByte){
+					for(var i = firstByte; i < lastByte; i++){
+
+						var byteValueArray = (decimalArray[i] >>> 0).toString(2);
+						while(byteValueArray.length < 8){
+							byteValueArray = "0" + byteValueArray;
+						}
+
+						byteValueArray = byteValueArray.split("");
+						var byteValueString = byteValueArray.slice(8-nBits, 8).join("");
+						msg += byteValueString;
+
+						if(msg.indexOf("01011100011100100101110001101110") > -1){
+							done = true;
+							return msg;
+						}
+					}
+					return msg;
+				}
+
+				var arrayIndex = 0;
+				while(arrayIndex < decimalArray.length && !done) {
+					if(decimalArray[arrayIndex] == 109 &&
+						decimalArray[arrayIndex + 1] == 100 &&
+						decimalArray[arrayIndex + 2] == 97 &&
+						decimalArray[arrayIndex + 3] == 116){
+
+						var packetSize = decimalArray[arrayIndex - 1] +
+									decimalArray[arrayIndex - 2] +
+									decimalArray[arrayIndex - 3] +
+									decimalArray[arrayIndex - 4];
+
+							decodeVideoFrame(arrayIndex + 4, arrayIndex + packetSize - 4);
+
+						if(!done){
+							arrayIndex += packetSize;
+						}
+						else{
+							return msg;
+						}
+					}
+					else{
+						arrayIndex++;
+					}
+				}
+
+				return msg;
+			}
+
+			var decodedMessage = decodedVideo(newVideo, 8).split(""),
+				decodedMessageFinal = decodedMessage.slice(0, decodedMessage.length - 32).join("");
+
+
+			var res = decodedMessageFinal.match(/[01]{8}/g).map(function(v) {
+			    return String.fromCharCode( parseInt(v,2) );
+			}).join('');
+
+			$scope.decodedMessage = res;
 		}
     };
 
@@ -129,6 +279,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   			if(foundFirstStop === true) {
   				if(imageData[byteIndex] === 27) {
   					console.log("ENDING");
+					$scope.decodedMessage = msg;
   					return msg;
   				}
   			} else{
@@ -252,6 +403,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   			console.log("---BIT " + bitIterator + " -----");
   			if (foundFirstStop === true) {
   				if (decimalArray[sampleIterator] === 27) {
+					$scope.decodedMessage = msg;
   					return msg;
   				}
   			} else {

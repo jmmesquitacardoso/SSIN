@@ -1,22 +1,16 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<link rel="stylesheet" type="text/css" href="./css/main.css">
-		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="./css/bootstrap.min.css">
+		<link rel="stylesheet" href="./css/bootstrap-theme.min.css">
+		<script type="text/javascript" src="./js/jquery-2.1.4.min.js"></script>
+		<script type="text/javascript" src="./js/bootstrap.min.js"></script>
 		<script type="text/javascript" src="./js/angular.js"></script>
   		<script type="text/javascript" src="./js/bower_components/ngFileReader/src/ngFileReader.js"></script>
   		<script type="text/javascript" src="./js/base64.js"></script>
 		<script type="text/javascript" src="./js/controller.js"></script>
 	</head>
 	<body ng-app="FileApp" ng-controller="fileCtrl">
-
-
-
-
-
 
 		<div class="container-fluid">
 			<div class="row">
@@ -36,6 +30,9 @@
 								</li>
 								<li ng-class="{ active: selectedMode === 'audio' }" ng-click="selectedMode = 'audio'">
 									<a href="#">Audio</a>
+								</li>
+								<li ng-class="{ active: selectedMode === 'video' }" ng-click="selectedMode = 'video'">
+									<a href="#">Video</a>
 								</li>
 							</ul>
 
@@ -67,6 +64,7 @@
 							<canvas id="myCanvas" width="5000" height="5000"></canvas>
 							<br><br><br>
 							<button><a id="download" ng-click="downloadCanvas()" href="" download="image.png">Download as image</a></button>
+							<p>{{decodedMessage}}</p>
 						</div>
 					</form>
 					<!-- END IMAGE STEGANOGRAPHY -->
@@ -87,7 +85,7 @@
 							<label for="imageInput">
 								Audio file
 							</label>
-							<div ng-file-reader id="imageInput" accept="audio/wav, video/mp4" on-selected="onSelected(files)" on-readed="onReaded(event,file)" 	read-method="readMethod"></div>
+							<div ng-file-reader id="imageInput" accept="audio/wav" on-selected="onSelected(files)" on-readed="onReaded(event,file)" 	read-method="readMethod"></div>
 						</div>
 
 						<div ng-show="sound">
@@ -99,9 +97,41 @@
 							<audio controls src="{{modifiedSound}}">
 								Your browser does not support audio tag
 							</audio>
+							<p>{{decodedMessage}}</p>
 						</div>
 					</form>
 					<!-- END AUDIO STEGANOGRAPHY -->
+
+					<!-- VIDEO STEGANOGRAPHY -->
+					<form role="form" ng-show="selectedMode === 'video'">
+						<div class="form-group">
+
+							<label for="imageMessage">
+								Message
+							</label>
+							<input type="text" ng-model="msg" class="form-control" id="imageMessage" />
+						</div>
+
+						<div class="form-group">
+
+							<label for="imageInput">
+								Video file
+							</label>
+							<div ng-file-reader id="imageInput" accept="video/mp4" on-selected="onSelected(files)" on-readed="onReaded(event,file)" 	read-method="readMethod"></div>
+						</div>
+
+						<div ng-show="modifiedVideo">
+							<h1>Original Video</h1>
+							<video controls src="{{video}}">
+								Your browser does not support video tag
+							</video>
+							<h1>Modified Video</h1>
+							<video controls src="{{modifiedVideo}}">
+								Your browser does not support video tag
+							</video>
+							<p>{{decodedMessage}}</p>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
