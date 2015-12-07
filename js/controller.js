@@ -8,6 +8,8 @@ app.config(["$compileProvider", function($compileProvider) {
 app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
   $scope.selectedMode = 'image';
+  $scope.imageBit = 8;
+  $scope.soundNBit = 8;
 
 	$scope.readMethod = "readAsDataURL";
 	$scope.onSelected = function(files){
@@ -36,7 +38,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				context.drawImage(img, 0, 0);
 				var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 				var data = imageData.data;
-				encodeImage(data, $scope.msg, 2);
+				encodeImage(data, $scope.msg, $scope.imageBit);
 				var decodedMsg = decodeImage(data);
 				console.log("DECODED MESSAGE: " + decodedMsg);
 
@@ -46,7 +48,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 		}
 		else if(file.type.indexOf("audio") != -1){ //Audio file
 			$scope.sound = $sce.trustAsResourceUrl(e.target.result);
-			var newSound = encodeSound(e.target.result, $scope.msg, 8);
+			var newSound = encodeSound(e.target.result, $scope.msg, $scope.soundNBit);
 			var msg = decodeSound(newSound);
 			$scope.modifiedSound = $sce.trustAsResourceUrl(newSound);
 			console.log("MSG = " + msg);
