@@ -29,16 +29,14 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 			var context = canvas.getContext('2d');
 			var img = new Image();
 			img.src = e.target.result;
-      console.log("Unchanged image width = " + img.width);
+			img.onload = function(){
       document.getElementById("myCanvas").width = img.width;
       document.getElementById("myCanvas").height = img.height;
 			context.clearRect(0, 0, canvas.width, canvas.height);
-			img.onload = function(){
 				context.drawImage(img, 0, 0);
 				var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 				var data = imageData.data;
-				encodeImage(data, $scope.msg, 8);
-				console.log("\n\n\n");
+				encodeImage(data, $scope.msg, 2);
 				var decodedMsg = decodeImage(data);
 				console.log("DECODED MESSAGE: " + decodedMsg);
 
@@ -123,16 +121,12 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
 		for(letterIndex = 0; letterIndex < msg.length; letterIndex++){
 			for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits){
-				console.log("------ BIT " + bitIterator + " -------");
 				byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
 				counter++;
-				console.log("imageData = " + imageData[byteIndex]);
 				var byteValue = ( (msg.charCodeAt(letterIndex) & (andValue << bitIterator) )) >> bitIterator;
-				console.log("Byte Value = " + byteValue);
 				if(byteValue != 0){
 					imageData[byteIndex] = (imageData[byteIndex]) ^ byteValue;
 					for(var i = 0; i < nBits; i++){
-						console.log("CHANGING BIT " + i);
 						var bitValue = (byteValue >> i) & 1;
 						if(bitValue == 1){
 							imageData[byteIndex] |= 1 << i;
@@ -144,14 +138,17 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				}else{
 					imageData[byteIndex] &= ~andValue;
 				}
-				console.log("ENCODED VALUE = " + imageData[byteIndex]);
 			}
 		}
 
 			imageData[3] = nBits;
-      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 13; //end of text character
+      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 92; //end of text character
       counter++;
-      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 27; //end of text character
+      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 114; //end of text character
+      counter++;
+      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 92; //end of text character
+      counter++;
+      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 110; //end of text character
   };
 
   var decodeImage = function(imageData){
@@ -160,35 +157,28 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   	var msg = "";
   	var foundFirstStop = false;
 		var nBits = imageData[3];
-		console.log("nBits = " + nBits);
   	var andValue = 2 * Math.pow(2, nBits - 1) - 1;
+    var nTimes = 0;
 
 
   	while(1){
   		var letterASCII = 0;
   		for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits, counter++){
-  			console.log("--- bitIterator = " + bitIterator + " ---");
   			byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
   			if(foundFirstStop === true) {
-  				if(imageData[byteIndex] === 27) {
-  					console.log("ENDING");
-  					return msg;
-  				}
+  				if(imageData[byteIndex] == 114 && imageData[(counter+1) * 5 - 3 * Math.floor((counter+1) / 3)] == 92 && imageData[(counter+2) * 5 - 3 * Math.floor((counter+2) / 3)] == 110) {
+            return msg;
+          }
   			} else{
-						if (imageData[byteIndex] === 13) {
+						if (imageData[byteIndex] == 92) {
 							foundFirstStop = true;
-							console.log("FOUND ONE");
 							continue;
 						}
   					var byteValue = imageData[byteIndex] & andValue; //LSB
-  					console.log("i = " + bitIterator + " imageData = " + imageData[byteIndex]);
-  					console.log("byteValue = " + byteValue);
   					byteValue = byteValue << bitIterator;
-  					console.log("AFTER SHIFT " + byteValue);
   					letterASCII |= byteValue;
   				}
   			}
-  			console.log("FINAL ASCII NUMBER " + letterASCII);
   			msg += String.fromCharCode(letterASCII);
   		}
   	};
@@ -200,7 +190,6 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   		var decoded = decode64(binarySound);
   		var decimalArray = [];
   		var andValue = 2 * Math.pow(2, nBits - 1) - 1;
-  		console.log("andValue= " + andValue);
 
   		for(var i = 0; i < decoded.length; i++){
   			decimalArray[i] = decoded[i].charCodeAt(0);
@@ -220,15 +209,11 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 			decimalArray[sampleIterator] = nBits;
 			sampleIterator++;
 
-  		console.log("---ENCODE, " + sampleBits + " bits/sample, " + nSamples + " samples");
-  		console.log(decimalArray.length);
   		for(letterIndex = 0; letterIndex < msg.length; letterIndex++){
 			for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits){
-				console.log("--- BIT " + bitIterator + " ----");
 				var byteValue = ( (msg.charCodeAt(letterIndex) & (andValue << bitIterator) )) >> bitIterator;
 				console.log("BYTE = " + byteValue);
 				if(byteValue != 0){
-					console.log("BEFORE: " + decimalArray[sampleIterator]);
 					decimalArray[sampleIterator] ^= byteValue;
 					for(var i = 0; i < nBits; i++){
 						var bitValue = (byteValue >> i) & 1;
@@ -240,20 +225,20 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 							decimalArray[sampleIterator] &= ~(1 << i);
 						}
 					}
-					console.log("AFTER: " + decimalArray[sampleIterator]);
 				}else{
-					console.log("BEFORE: " + decimalArray[sampleIterator]);
 					decimalArray[sampleIterator] &= (~andValue);
-
-					console.log("AFTER: " + decimalArray[sampleIterator]);
 				}
 			  sampleIterator++;
 			}
 		}
 
-		decimalArray[sampleIterator] = 13;
+		decimalArray[sampleIterator] = 92;
 		sampleIterator++;
-		decimalArray[sampleIterator] = 27;
+		decimalArray[sampleIterator] = 114;
+    sampleIterator++;
+    decimalArray[sampleIterator] = 92;
+    sampleIterator++;
+    decimalArray[sampleIterator] = 110;
 		var encoded = "";
 		for(var i = 0; i < decimalArray.length; i++){
 			encoded += String.fromCharCode(decimalArray[i]);
@@ -271,48 +256,34 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   		var msg = "";
   		var foundFirstStop = false;
 
-			console.log("\n\n\n\n\n\n ENTERED DECODE SOUND!!!!11111!!!ELEVEN");
-
   		for(var i = 0; i < decoded.length; i++){
   			decimalArray[i] = decoded[i].charCodeAt(0);
   		}
 
   		var sampleBits = (decimalArray[35] << 4) | decimalArray[34];
 
-  		console.log("-----DECODE, " + sampleBits + " bits/sample");
-  		console.log(decimalArray[34]);
-  		console.log(decimalArray[35]);
-  		console.log(decimalArray.length);
-
 			var nBits = decimalArray[45];
   		var andValue = 2 * Math.pow(2, nBits - 1) - 1;
-			console.log("nBits = " + nBits);
 			sampleIterator++;
 
   		while(1) {
   		var letterASCII = 0;
   		for (var bitIterator = 0; bitIterator < 8; bitIterator += nBits) {
-  			console.log("---BIT " + bitIterator + " -----");
   			if (foundFirstStop === true) {
-  				if (decimalArray[sampleIterator] === 27) {
+  				if (decimalArray[sampleIterator] == 114 && decimalArray[(sampleIterator+1)] == 92 && decimalArray[(sampleIterator+2)] == 110) {
   					return msg;
   				}
   			} else {
-					if (decimalArray[sampleIterator] === 13) {
+					if (decimalArray[sampleIterator] === 92) {
 	  					foundFirstStop = true;
-	  					console.log("FOUND ONE STOP");
 	  					continue;
 					}
-  				console.log("SOUND DATA = " + decimalArray[sampleIterator]);
   				var byteValue = decimalArray[sampleIterator] & andValue; //LSB
-  				console.log("byteValue = " + byteValue);
   				byteValue = byteValue << bitIterator;
   				letterASCII |= byteValue;
   			}
   			sampleIterator++;
   		}
-  		console.log("sampleIterator = " + sampleIterator);
-  		console.log(letterASCII);
   		msg += String.fromCharCode(letterASCII);
   	}
   };
