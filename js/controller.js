@@ -12,6 +12,10 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   $scope.soundNBit = 8;
   $scope.videoNBit = 8;
 
+  $scope.videoEncryptType = 'encode';
+  $scope.soundEncryptType = 'encode';
+  $scope.imageEncryptType = 'encode';
+
 	$scope.readMethod = "readAsDataURL";
 	$scope.onSelected = function(files){
 	};
@@ -33,12 +37,23 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 			var img = new Image();
 			img.src = e.target.result;
 			img.onload = function(){
-      document.getElementById("myCanvas").width = img.width;
-      document.getElementById("myCanvas").height = img.height;
-			context.clearRect(0, 0, canvas.width, canvas.height);
+		    	document.getElementById("myCanvas").width = img.width;
+		      	document.getElementById("myCanvas").height = img.height;
+				context.clearRect(0, 0, canvas.width, canvas.height);
 				context.drawImage(img, 0, 0);
 				var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 				var data = imageData.data;
+
+/*				if($scope.imageEncryptType === 'encode'){
+					encodeImage(data, $scope.msg, $scope.imageBit);
+					context.putImageData(imageData, 0, 0);
+				}
+				else{
+					var decodedMsg = decodeImage(data);
+					$scope.decodedMessage = decodedMsg;
+					$scope.$apply();
+				}*/
+
 				encodeImage(data, $scope.msg, $scope.imageBit);
 				var decodedMsg = decodeImage(data);
 				$scope.decodedMessage = decodedMsg;

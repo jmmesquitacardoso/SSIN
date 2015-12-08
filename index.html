@@ -82,6 +82,13 @@
 
 						</div>
 
+<!--						<label>
+						  	<input type="radio" ng-value="'encode'" ng-model="imageEncryptType"/> Encode
+					  	</label>
+					  	<label >
+						  	<input type="radio" ng-value="'decode'" ng-model="imageEncryptType"/> Decode
+					  	</label>-->
+
 						<div class="form-group">
 
 							<label for="imageInput">
@@ -97,6 +104,7 @@
 							<canvas id="myCanvas" width="5000" height="5000"></canvas>
 							<br><br><br>
 							<button><a id="download" ng-click="downloadCanvas()" href="" download="image.png">Download as image</a></button>
+							<h1>Message</h1>
 							<p>{{decodedMessage}}</p>
 						</div>
 					</form>
@@ -145,6 +153,14 @@
               </label>
 						</div>
 
+
+<!--						<label>
+						  	<input type="radio" ng-value="'encode'" ng-model="soundEncryptType"/> Encode
+					  	</label>
+					  	<label >
+						  	<input type="radio" ng-value="'decode'" ng-model="soundEncryptType"/> Decode
+					  	</label>-->
+
 						<div class="form-group">
 
 							<label for="imageInput">
@@ -162,6 +178,7 @@
 							<audio controls src="{{modifiedSound}}">
 								Your browser does not support audio tag
 							</audio>
+							<h1>Message</h1>
 							<p>{{decodedMessage}}</p>
 						</div>
 					</form>
@@ -209,6 +226,13 @@
               </label>
 						</div>
 
+<!--						<label>
+						  	<input type="radio" ng-value="'encode'" ng-model="videoEncryptType"/> Encode
+					  	</label>
+					  	<label >
+						  	<input type="radio" ng-value="'decode'" ng-model="videoEncryptType"/> Decode
+					  	</label>-->
+
 						<div class="form-group">
 
 							<label for="imageInput">
@@ -226,6 +250,7 @@
 							<video controls src="{{modifiedVideo}}">
 								Your browser does not support video tag
 							</video>
+							<h1>Message</h1>
 							<p>{{decodedMessage}}</p>
 						</div>
 					</form>
