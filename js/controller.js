@@ -8,9 +8,10 @@ app.config(["$compileProvider", function($compileProvider) {
 app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
   $scope.selectedMode = 'image';
-  $scope.imageBit = 8;
-  $scope.soundNBit = 8;
-  $scope.videoNBit = 8;
+  $scope.process = 'encode';
+  $scope.imageBit = 1;
+  $scope.soundNBit = 1;
+  $scope.videoNBit = 1;
 
   $scope.videoEncryptType = 'encode';
   $scope.soundEncryptType = 'encode';
@@ -22,7 +23,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
   $scope.downloadCanvas = function () {
     var canvas = document.getElementById("myCanvas");
-    var dataURL = canvas.toDataURL('image/png');
+    var dataURL = canvas.toDataURL('image/jpg');
     var button = document.getElementById('download');
     button.href = dataURL;
   };
@@ -43,33 +44,37 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				context.drawImage(img, 0, 0);
 				var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 				var data = imageData.data;
-
-/*				if($scope.imageEncryptType === 'encode'){
-					encodeImage(data, $scope.msg, $scope.imageBit);
-					context.putImageData(imageData, 0, 0);
+				if($scope.process === 'encode'){
+					console.log(imageData.data[281]);
+					encodeImage(data, $scope.msg, $scope.imageBit, function(){
+      					context.putImageData(imageData, 0, 0);
+						console.log(imageData.data[281]);
+						console.log(context.getImageData(0, 0, canvas.width, canvas.height).data[281]);
+					});
 				}
-				else{
-					var decodedMsg = decodeImage(data);
-					$scope.decodedMessage = decodedMsg;
-					$scope.$apply();
-				}*/
-
-				encodeImage(data, $scope.msg, $scope.imageBit);
+				console.log(imageData.data[281]);
+				
 				var decodedMsg = decodeImage(data);
 				$scope.decodedMessage = decodedMsg;
 				$scope.$apply();
 
-      			// overwrite original image
-      			context.putImageData(imageData, 0, 0);
       		};
 		}
 		else if(file.type.indexOf("audio") != -1){ //Audio file
-			$scope.sound = $sce.trustAsResourceUrl(e.target.result);
-			var newSound = encodeSound(e.target.result, $scope.msg, $scope.soundNBit);
-			var msg = decodeSound(newSound);
-			$scope.modifiedSound = $sce.trustAsResourceUrl(newSound);
+			var newSound;
+			if($scope.process === 'encode'){
+				$scope.sound = $sce.trustAsResourceUrl(e.target.result);
+				newSound = encodeSound(e.target.result, $scope.msg, $scope.soundNBit);
+			}else{
+				newSound = e.target.result;
+			}
+			$scope.decodedMsg = decodeSound(newSound);
+			if($scope.process === 'encode'){
+				$scope.modifiedSound = $sce.trustAsResourceUrl(newSound);
+			}
 		}
-        else if (file.type.indexOf("video") !== -1){
+	};
+        /*else if (file.type.indexOf("video") !== -1){
             $scope.video = $sce.trustAsResourceUrl(e.target.result);
 			var videoData = e.target.result;
 
@@ -242,13 +247,14 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
 			$scope.decodedMessage = res;
 		}
-    };
+    };*/
 
 	/**
 	*** Distribui cada bit de cada letra pelos LSB dos componentes RGB de bytes alternados
 	*** E.G., SEGURANCA -> bits de S -> {bit 1 -> R do byte 1, bit 2 -> G do byte 2, ...}
 	**/
-	var encodeImage = function(imageData, msg, nBits){
+	var encodeImage = function(imageData, msg, nBits, callback){
+		var imageCopy = angular.copy(imageData);
 		var letterIndex;
 		var byteIndex = 0;
 		var counter = 0;
@@ -259,7 +265,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 			alert("Mensagem demasiado grande");
 			return;
 		}
-
+		imageData[1] = nBits;
 		for(letterIndex = 0; letterIndex < msg.length; letterIndex++){
 			for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits){
 				byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
@@ -282,14 +288,18 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 			}
 		}
 
-			imageData[3] = nBits;
-      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 92; //end of text character
+	  var newIndex = counter * 5 - 3 * Math.floor(counter / 3);
+      imageData[newIndex] = 92; //end of text character
       counter++;
-      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 114; //end of text character
+      newIndex = counter * 5 - 3 * Math.floor(counter / 3);
+      imageData[newIndex] = 114; //end of text character
       counter++;
-      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 92; //end of text character
+      newIndex = counter * 5 - 3 * Math.floor(counter / 3);
+      imageData[newIndex] = 92; //end of text character
       counter++;
-      imageData[counter * 5 - 3 * Math.floor(counter / 3)] = 110; //end of text character
+      newIndex = counter * 5 - 3 * Math.floor(counter / 3);
+      imageData[newIndex] = 110; //end of text character
+      callback();
   };
 
   var decodeImage = function(imageData){
@@ -297,7 +307,8 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   	var byteIndex = 0;
   	var msg = "";
   	var foundFirstStop = false;
-		var nBits = imageData[3];
+	var nBits = imageData[1];
+	console.log("nBits = " + nBits);
   	var andValue = 2 * Math.pow(2, nBits - 1) - 1;
     var nTimes = 0;
 
@@ -306,24 +317,22 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   		var letterASCII = 0;
   		for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits, counter++){
   			byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
-  			if(foundFirstStop === true) {
-  				if(imageData[byteIndex] == 114 && imageData[(counter+1) * 5 - 3 * Math.floor((counter+1) / 3)] == 92 && imageData[(counter+2) * 5 - 3 * Math.floor((counter+2) / 3)] == 110) {
+  			if(imageData[byteIndex] == 92 && 
+  				imageData[(counter+1) * 5 - 3 * Math.floor((counter+1) / 3)] == 114 && 
+  				imageData[(counter+2) * 5 - 3 * Math.floor((counter+2) / 3)] == 92 &&
+  				imageData[(counter+3) * 5 - 3 * Math.floor((counter+3) / 3)] == 110 ) {
 					$scope.decodedMessage = msg;
 					return msg;
-		        }
-  			} else{
-						if (imageData[byteIndex] == 92) {
-							foundFirstStop = true;
-							continue;
-						}
-  					var byteValue = imageData[byteIndex] & andValue; //LSB
-  					byteValue = byteValue << bitIterator;
-  					letterASCII |= byteValue;
-  				}
+		    }
+  			else{
+  				var byteValue = imageData[byteIndex] & andValue; //LSB
+  				byteValue = byteValue << bitIterator;
+  				letterASCII |= byteValue;
   			}
-  			msg += String.fromCharCode(letterASCII);
   		}
-  	};
+  			msg += String.fromCharCode(letterASCII);
+  	}
+  };
 
   	var encodeSound = function(soundData, msg, nBits){
   		var soundCopy = angular.copy(soundData);
@@ -336,7 +345,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   		for(var i = 0; i < decoded.length; i++){
   			decimalArray[i] = decoded[i].charCodeAt(0);
   		}
-
+  		console.log("decimalArray inicial length " + decimalArray.length);
   		var sampleBits = (decimalArray[35] << 4) | decimalArray[34];
   		var dataBlockSize = (((((decimalArray[43] << 4) | decimalArray[42]) << 4) | decimalArray[41]) << 4) | decimalArray[40];
 
@@ -348,8 +357,8 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
   		var nSamples = dataBlockSize / sampleBits;
   		var sampleIterator = 45;
-			decimalArray[sampleIterator] = nBits;
-			sampleIterator++;
+		decimalArray[sampleIterator] = nBits;
+		sampleIterator++;
 
   		for(letterIndex = 0; letterIndex < msg.length; letterIndex++){
 			for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits){
@@ -376,14 +385,19 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 		decimalArray[sampleIterator] = 92;
 		sampleIterator++;
 		decimalArray[sampleIterator] = 114;
-    sampleIterator++;
-    decimalArray[sampleIterator] = 92;
-    sampleIterator++;
-    decimalArray[sampleIterator] = 110;
+    	sampleIterator++;
+    	decimalArray[sampleIterator] = 92;
+    	sampleIterator++;
+    	decimalArray[sampleIterator] = 110;
+
 		var encoded = "";
-		for(var i = 0; i < decimalArray.length; i++){
+		for(var i = 0; i <= decimalArray.length; i++){
 			encoded += String.fromCharCode(decimalArray[i]);
 		}
+		
+		console.log("sampleIterator = " + sampleIterator);
+		console.log("decimalArray.length = " + decimalArray.length)
+		console.log("ENCODED, LAST WAS " +  encoded[sampleIterator]);
 		encoded = encode64(encoded);
 		return soundData.substring(0, binaryIndex + 7) + encoded;
   	};
@@ -400,26 +414,38 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   		for(var i = 0; i < decoded.length; i++){
   			decimalArray[i] = decoded[i].charCodeAt(0);
   		}
-
+  		console.log("DECODED LENGTH = " + decimalArray.length);
+  		console.log("DECODE POS 121 = " + decimalArray[121]);
   		var sampleBits = (decimalArray[35] << 4) | decimalArray[34];
 
-			var nBits = decimalArray[45];
+		var nBits = decimalArray[45];
   		var andValue = 2 * Math.pow(2, nBits - 1) - 1;
-			sampleIterator++;
+		sampleIterator++;
 
   		while(1) {
   		var letterASCII = 0;
   		for (var bitIterator = 0; bitIterator < 8; bitIterator += nBits) {
-  			if (foundFirstStop === true) {
-  				if (decimalArray[sampleIterator] == 114 && decimalArray[(sampleIterator+1)] == 92 && decimalArray[(sampleIterator+2)] == 110) {
-					$scope.decodedMessage = msg;
-					return msg;
+  			if(decimalArray[sampleIterator] == 92){
+  				console.log("FIRST");
+  				if(decimalArray[sampleIterator+1] == 114){
+  					console.log("SECOND");
   				}
-  			} else {
-					if (decimalArray[sampleIterator] === 92) {
-	  					foundFirstStop = true;
-	  					continue;
-					}
+  				if(decimalArray[sampleIterator+2] == 92){
+  					console.log("THIRD, NEXT IS " + decimalArray[sampleIterator+3]);
+  				}
+  				if(decimalArray[sampleIterator+3] == 110){
+  					console.log("FOURTH");
+  				}
+  			}
+  			if (decimalArray[sampleIterator] === 92 && 
+  				decimalArray[(sampleIterator+1)] === 114 && 
+  				decimalArray[(sampleIterator+2)] === 92 &&
+  				decimalArray[(sampleIterator+3)] === 110) {
+					$scope.decodedMessage = msg;
+					console.log("FOUND IT");
+					return msg;
+  			}
+  			else {
   				var byteValue = decimalArray[sampleIterator] & andValue; //LSB
   				byteValue = byteValue << bitIterator;
   				letterASCII |= byteValue;
