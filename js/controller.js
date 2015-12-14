@@ -73,8 +73,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				$scope.modifiedSound = $sce.trustAsResourceUrl(newSound);
 			}
 		}
-	};
-        /*else if (file.type.indexOf("video") !== -1){
+        else if (file.type.indexOf("video") !== -1){
             $scope.video = $sce.trustAsResourceUrl(e.target.result);
 			var videoData = e.target.result;
 
@@ -164,6 +163,9 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
 			var newVideo = encodeVideo(angular.copy(videoData),$scope.msg, $scope.videoNBit);
 			$scope.modifiedVideo = $sce.trustAsResourceUrl(newVideo);
+			var button = document.getElementById('videoDownload');
+    		button.href = newVideo;
+
 
 			var decodedVideo = function(newVideo){
 
@@ -247,7 +249,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 
 			$scope.decodedMessage = res;
 		}
-    };*/
+    };
 
 	/**
 	*** Distribui cada bit de cada letra pelos LSB dos componentes RGB de bytes alternados
