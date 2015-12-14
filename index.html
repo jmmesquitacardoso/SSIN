@@ -3,6 +3,7 @@
 	<head>
 		<link rel="stylesheet" href="./css/bootstrap.min.css">
 		<link rel="stylesheet" href="./css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="./css/style.css">
 		<script type="text/javascript" src="./js/jquery-2.1.4.min.js"></script>
 		<script type="text/javascript" src="./js/bootstrap.min.js"></script>
 		<script type="text/javascript" src="./js/angular.js"></script>
@@ -34,14 +35,23 @@
 								<li ng-class="{ active: selectedMode === 'video' }" ng-click="selectedMode = 'video'">
 									<a href="#">Video</a>
 								</li>
-							</ul>
 
+								 <li class="divider-vertical"></li>
+
+								 <li ng-class="{ active: process === 'encode' }" ng-click="process = 'encode'; img=null; decodedMessage=''">
+									<a href="#">Encode</a>
+								</li>
+								<li ng-class="{ active: process === 'decode' }" ng-click="process = 'decode'; decodedMessage=''">
+									<a href="#">Decode</a>
+								</li>
+							</ul>
 						</div>
 					</nav>
 
+					<div>
 					<!-- IMAGE STEGANOGRAPHY -->
 					<form role="form" ng-show="selectedMode === 'image'">
-						<div class="form-group">
+						<div class="form-group" ng-show="process == 'encode'">
 
 							<label for="imageMessage">
 								Message
@@ -49,7 +59,7 @@
 							<input type="text" ng-model="msg" class="form-control" id="imageMessage" />
 						</div>
 
-						<div class="form-group">
+						<div class="form-group" ng-show="process == 'encode'">
 
 							<label for="imageNBit">
 								Number of bits
@@ -98,12 +108,14 @@
 						</div>
 
 						<div ng-show="img">
+							<div ng-show='process == "encode"'>
 							<h1>Original Image</h1>
 							<img ng-src="{{img}}">
 							<h1>Modified Image</h1>
-							<canvas id="myCanvas" width="5000" height="5000"></canvas>
+							<canvas id="myCanvas"></canvas>
 							<br><br><br>
 							<button><a id="download" ng-click="downloadCanvas()" href="" download="image.png">Download as image</a></button>
+							</div>
 							<h1>Message</h1>
 							<p>{{decodedMessage}}</p>
 						</div>
@@ -113,7 +125,7 @@
 
 					<!-- AUDIO STEGANOGRAPHY -->
 					<form role="form" ng-show="selectedMode === 'audio'">
-						<div class="form-group">
+						<div class="form-group" ng-show="process == 'encode'">
 
 							<label for="imageMessage">
 								Message
@@ -121,7 +133,7 @@
 							<input type="text" ng-model="msg" class="form-control" id="imageMessage" />
 						</div>
 
-						<div class="form-group">
+						<div class="form-group" ng-show="process == 'encode'">
 
 							<label for="soundNBit">
 								Number of bits
@@ -169,7 +181,8 @@
 							<div ng-file-reader id="imageInput" accept="audio/wav" on-selected="onSelected(files)" on-readed="onReaded(event,file)" 	read-method="readMethod"></div>
 						</div>
 
-						<div ng-show="sound">
+						<div ng-show="sound || process == 'decode'">
+							<div ng-show="process == 'encode'">
 							<h1>Original Sound</h1>
 							<audio controls src="{{sound}}">
 								Your browser does not support audio tag
@@ -178,7 +191,8 @@
 							<audio controls src="{{modifiedSound}}">
 								Your browser does not support audio tag
 							</audio>
-							<h1>Message</h1>
+							</div>
+							<h1 ng-show="decodedMessage">Message</h1>
 							<p>{{decodedMessage}}</p>
 						</div>
 					</form>
@@ -250,6 +264,8 @@
 							<video controls src="{{modifiedVideo}}">
 								Your browser does not support video tag
 							</video>
+							<br><br><br>
+							<button><a id="videoDownload" href="" download="video.mp4">Download as video</a></button>
 							<h1>Message</h1>
 							<p>{{decodedMessage}}</p>
 						</div>
