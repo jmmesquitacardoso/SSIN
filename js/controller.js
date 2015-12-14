@@ -108,6 +108,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 							return;
 						}
 
+
 						var bit = textToIncode.slice(0,nBits);
 						for(var k = 0; k < nBits; k++){
 							var bitValue = bit[bit.length - 1 - k];
@@ -148,6 +149,12 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 						arrayIndex++;
 					}
 				}
+
+                if(textToIncode.length > 0){
+                    alert("Mensagem demasiado grande");
+                    return null;
+                }
+
 				var encoded = "";
 				for(var i = 0; i < decimalArray.length; i++){
 					encoded += String.fromCharCode(decimalArray[i]);
@@ -192,15 +199,17 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 						}
 
 						byteValueArray = byteValueArray.split("");
+
 						var byteValueString = byteValueArray.slice(8-nBits, 8).join("");
 						msg += byteValueString;
 
-						if(msg.indexOf("01011100011100100101110001101110") > -1){
+                        var barraNIndex = msg.indexOf("010111000111001001011100");
+						if(barraNIndex > -1){
+                            var res = msg.split('').splice(0, barraNIndex).join('');
 							done = true;
-							return msg;
+                            return;
 						}
 					}
-					return msg;
 				}
 
 				var arrayIndex = 0;
@@ -215,7 +224,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 									decimalArray[arrayIndex - 3] +
 									decimalArray[arrayIndex - 4];
 
-							decodeVideoFrame(arrayIndex + 4, arrayIndex + packetSize - 4);
+                        decodeVideoFrame(arrayIndex + 4, arrayIndex + packetSize - 4);
 
 						if(!done){
 							arrayIndex += packetSize;
@@ -228,12 +237,11 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 						arrayIndex++;
 					}
 				}
-
 				return msg;
 			}
 
 			var decodedMessage = decodedVideo(newVideo).split(""),
-				decodedMessageFinal = decodedMessage.slice(0, decodedMessage.length - 32).join("");
+				decodedMessageFinal = decodedMessage.slice(0, decodedMessage.length - 24).join("");
 
 
 			var res = decodedMessageFinal.match(/[01]{8}/g).map(function(v) {
