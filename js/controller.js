@@ -53,7 +53,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 					});
 				}
 				console.log(imageData.data[281]);
-				
+
 				var decodedMsg = decodeImage(data);
 				$scope.decodedMessage = decodedMsg;
 				$scope.$apply();
@@ -248,8 +248,8 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				var button = document.getElementById('videoDownload');
     			button.href = newVideo;
 			}else{
-				var decodedMessage = decodedVideo(angular.copy(videoData)).split(""),
-				decodedMessageFinal = decodedMessage.slice(0, decodedMessage.length - 24).join("");
+				var decodedMessage = decodedVideo(videoData).split(""),
+				    decodedMessageFinal = decodedMessage.slice(0, decodedMessage.length - 24).join("");
 
 
 			var res = decodedMessageFinal.match(/[01]{8}/g).map(function(v) {
@@ -259,7 +259,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				$scope.decodedMessage = res;
 			}
 
-			
+
 		}
     };
 
@@ -331,8 +331,8 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   		var letterASCII = 0;
   		for(var bitIterator = 0; bitIterator < 8; bitIterator += nBits, counter++){
   			byteIndex = counter * 5 - 3 * Math.floor(counter / 3);
-  			if(imageData[byteIndex] == 92 && 
-  				imageData[(counter+1) * 5 - 3 * Math.floor((counter+1) / 3)] == 114 && 
+  			if(imageData[byteIndex] == 92 &&
+  				imageData[(counter+1) * 5 - 3 * Math.floor((counter+1) / 3)] == 114 &&
   				imageData[(counter+2) * 5 - 3 * Math.floor((counter+2) / 3)] == 92 &&
   				imageData[(counter+3) * 5 - 3 * Math.floor((counter+3) / 3)] == 110 ) {
 					$scope.decodedMessage = msg;
@@ -408,7 +408,7 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 		for(var i = 0; i <= decimalArray.length; i++){
 			encoded += String.fromCharCode(decimalArray[i]);
 		}
-		
+
 		console.log("sampleIterator = " + sampleIterator);
 		console.log("decimalArray.length = " + decimalArray.length)
 		console.log("ENCODED, LAST WAS " +  encoded[sampleIterator]);
@@ -451,8 +451,8 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
   					console.log("FOURTH");
   				}
   			}
-  			if (decimalArray[sampleIterator] === 92 && 
-  				decimalArray[(sampleIterator+1)] === 114 && 
+  			if (decimalArray[sampleIterator] === 92 &&
+  				decimalArray[(sampleIterator+1)] === 114 &&
   				decimalArray[(sampleIterator+2)] === 92 &&
   				decimalArray[(sampleIterator+3)] === 110) {
 					$scope.decodedMessage = msg;
