@@ -168,11 +168,6 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				return videoData.substring(0, binaryIndex + 7) + encoded;
 			}
 
-			var newVideo = encodeVideo(angular.copy(videoData),$scope.msg, $scope.videoNBit);
-			$scope.modifiedVideo = $sce.trustAsResourceUrl(newVideo);
-			var button = document.getElementById('videoDownload');
-    		button.href = newVideo;
-
 
 			var decodedVideo = function(newVideo){
 
@@ -247,7 +242,13 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 				return msg;
 			}
 
-			var decodedMessage = decodedVideo(newVideo).split(""),
+			if($scope.process === 'encode'){
+				var newVideo = encodeVideo(angular.copy(videoData),$scope.msg, $scope.videoNBit);
+				$scope.modifiedVideo = $sce.trustAsResourceUrl(newVideo);
+				var button = document.getElementById('videoDownload');
+    			button.href = newVideo;
+			}else{
+				var decodedMessage = decodedVideo(angular.copy(videoData)).split(""),
 				decodedMessageFinal = decodedMessage.slice(0, decodedMessage.length - 24).join("");
 
 
@@ -255,7 +256,10 @@ app.controller('fileCtrl', ['$scope', '$sce', function($scope, $sce){
 			    return String.fromCharCode( parseInt(v,2) );
 			}).join('');
 
-			$scope.decodedMessage = res;
+				$scope.decodedMessage = res;
+			}
+
+			
 		}
     };
 
